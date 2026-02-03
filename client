@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+
+from worker import takecommand;
+from recvall import recvall;
+import argparse;
+import socket;
+
+
+
+def main():
+  
+  # Parse the required options for this program.
+  parser = argparse.ArgumentParser(description="CS4700 Proj2")
+  # Commands. One of ls, mkdir, rm, rmdir, cp, or mv.
+  parser.add_argument("command", help = "FTP command to run")
+  # Location to access files for commands requiring one path (in which case it must be an FTP URL).
+  # Otherwise, this is the file access path and may be an FTP URL or local path.
+  parser.add_argument("location1", help = "Location to access files. If no location2, this must be an FTP URL")
+  # File destination for cp and mv commands.
+  parser.add_argument("location2", nargs='?', default=None, help = "Location to store files")
+
+
+
+  args = parser.parse_args()
+  #ftpurl = urlparse(args.link, "ftp")
+
+  # The two sockets required for FTP communication.
+  # Are passed around by reference in the worker.py script.
+  control = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  data = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+  
+  # Found in worker.py. Handles commands.
+  takecommand(args, control, data)
+
+  # Quits the control socket connection.
+  # The file socket connection is managed in worker.py.
+  quitreq = "QUIT\r\n"
+  control.send(quitreq.encode())
+  print(recvall(control).decode())
+
+  #control.send
+
+
+main()
